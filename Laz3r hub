@@ -1,0 +1,899 @@
+-- LAZER HUB Complete Script
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "LAZER HUB",
+   LoadingTitle = "LAZER..",
+   LoadingSubtitle = "by Laz3r",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil,
+      FileName = "LAZER Hub"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+   KeySystem = false,
+})
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+-- Player Tab
+local PlayerTab = Window:CreateTab("Player")
+
+-- Notify on Start
+Rayfield:Notify({
+   Title = "LAZER HUB",
+   Content = "Successfully loaded!",
+   Duration = 3,
+})
+
+-- WalkSpeed Slider
+local WalkSpeedSlider = PlayerTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 100},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "WalkSpeed",
+   Callback = function(Value)
+      if player.Character and player.Character:FindFirstChild("Humanoid") then
+          player.Character.Humanoid.WalkSpeed = Value
+      end
+   end,
+})
+
+-- JumpPower Slider
+local JumpPowerSlider = PlayerTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {50, 200},
+   Increment = 1,
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "JumpPower",
+   Callback = function(Value)
+      if player.Character and player.Character:FindFirstChild("Humanoid") then
+          player.Character.Humanoid.JumpPower = Value
+      end
+   end,
+})
+
+-- Infinite Yield Admin Commands
+local InfiniteYieldLoaded = false
+
+local function LoadInfiniteYield()
+    if not InfiniteYieldLoaded then
+        Rayfield:Notify({
+            Title = "Infinite Yield",
+            Content = "Loading Admin Commands...",
+            Duration = 3,
+        })
+        
+        -- Load Infinite Yield
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+        
+        InfiniteYieldLoaded = true
+        
+        Rayfield:Notify({
+            Title = "Infinite Yield",
+            Content = "Admin Commands loaded! Use ;help for commands",
+            Duration = 5,
+        })
+    else
+        Rayfield:Notify({
+            Title = "Infinite Yield",
+            Content = "Admin Commands already loaded!",
+            Duration = 3,
+        })
+    end
+end
+
+-- Infinite Yield Button
+PlayerTab:CreateButton({
+    Name = "Load Infinite Yield Admin",
+    Callback = function()
+        LoadInfiniteYield()
+    end,
+})
+
+-- Quick Admin Commands Section
+PlayerTab:CreateSection("Quick Admin Commands")
+
+-- Fly Toggle
+local Flying = false
+local FlySpeed = 50
+local BodyVelocity
+
+PlayerTab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(Value)
+        Flying = Value
+        if Flying then
+            Rayfield:Notify({
+                Title = "Fly",
+                Content = "Fly enabled! Use W,A,S,D to fly",
+                Duration = 3,
+            })
+            
+            -- Create BodyVelocity for flying
+            local character = player.Character
+            if character then
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    BodyVelocity = Instance.new("BodyVelocity")
+                    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                    BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                    BodyVelocity.Parent = humanoidRootPart
+                    
+                    -- Fly loop
+                    local flyConnection
+                    flyConnection = RunService.Heartbeat:Connect(function()
+                        if not Flying or not character or not humanoidRootPart then
+                            flyConnection:Disconnect()
+                            return
+                        end
+                        
+                        local camera = Workspace.CurrentCamera
+                        local moveDirection = Vector3.new(0, 0, 0)
+                        
+                        -- Get movement input
+                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
+                            moveDirection = moveDirection + camera.CFrame.LookVector
+                        end
+                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S) then
+                            moveDirection = moveDirection - camera.CFrame.LookVector
+                        end
+                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A) then
+                            moveDirection = moveDirection - camera.CFrame.RightVector
+                        end
+                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D) then
+                            moveDirection = moveDirection + camera.CFrame.RightVector
+                        end
+                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+                            moveDirection = moveDirection + Vector3.new(0, 1, 0)
+                        end
+                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
+                            moveDirection = moveDirection - Vector3.new(0, 1, 0)
+                        end
+                        
+                        -- Apply movement
+                        if moveDirection.Magnitude > 0 then
+                            BodyVelocity.Velocity = moveDirection.Unit * FlySpeed
+                        else
+                            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                        end
+                    end)
+                end
+            end
+        else
+            -- Stop flying
+            if BodyVelocity then
+                BodyVelocity:Destroy()
+                BodyVelocity = nil
+            end
+            Rayfield:Notify({
+                Title = "Fly",
+                Content = "Fly disabled!",
+                Duration = 2,
+            })
+        end
+    end,
+})
+
+-- Fly Speed Slider
+PlayerTab:CreateSlider({
+    Name = "Fly Speed",
+    Range = {10, 200},
+    Increment = 5,
+    Suffix = "Speed",
+    CurrentValue = 50,
+    Flag = "FlySpeed",
+    Callback = function(Value)
+        FlySpeed = Value
+    end,
+})
+
+-- Noclip Toggle
+local NoclipEnabled = false
+local NoclipConnection
+
+PlayerTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "NoclipToggle",
+    Callback = function(Value)
+        NoclipEnabled = Value
+        if NoclipEnabled then
+            Rayfield:Notify({
+                Title = "Noclip",
+                Content = "Noclip enabled! You can walk through walls",
+                Duration = 3,
+            })
+            
+            -- Noclip loop
+            NoclipConnection = RunService.Stepped:Connect(function()
+                if not NoclipEnabled then
+                    NoclipConnection:Disconnect()
+                    return
+                end
+                
+                local character = player.Character
+                if character then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            -- Disable noclip
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+            end
+            
+            -- Re-enable collision
+            local character = player.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+            
+            Rayfield:Notify({
+                Title = "Noclip",
+                Content = "Noclip disabled!",
+                Duration = 2,
+            })
+        end
+    end,
+})
+
+-- God Mode Toggle
+PlayerTab:CreateToggle({
+    Name = "God Mode",
+    CurrentValue = false,
+    Flag = "GodMode",
+    Callback = function(Value)
+        if Value then
+            Rayfield:Notify({
+                Title = "God Mode",
+                Content = "God Mode enabled! You are invincible",
+                Duration = 3,
+            })
+            
+            -- Make character invincible
+            local character = player.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.MaxHealth = math.huge
+                    humanoid.Health = math.huge
+                end
+            end
+        else
+            Rayfield:Notify({
+                Title = "God Mode",
+                Content = "God Mode disabled!",
+                Duration = 2,
+            })
+            
+            -- Reset health
+            local character = player.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.MaxHealth = 100
+                    humanoid.Health = 100
+                end
+            end
+        end
+    end,
+})
+
+-- Bring All Players Button
+PlayerTab:CreateButton({
+    Name = "Bring All Players",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Bring All",
+            Content = "Bringing all players to you...",
+            Duration = 3,
+        })
+        
+        local character = player.Character
+        if character then
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                for _, targetPlayer in pairs(Players:GetPlayers()) do
+                    if targetPlayer ~= player and targetPlayer.Character then
+                        local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                        if targetRoot then
+                            targetRoot.CFrame = humanoidRootPart.CFrame + Vector3.new(math.random(-5, 5), 0, math.random(-5, 5))
+                        end
+                    end
+                end
+            end
+        end
+    end,
+})
+
+-- Kill All Players Button
+PlayerTab:CreateButton({
+    Name = "Kill All Players",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Kill All",
+            Content = "Killing all players...",
+            Duration = 3,
+        })
+        
+        for _, targetPlayer in pairs(Players:GetPlayers()) do
+            if targetPlayer ~= player and targetPlayer.Character then
+                local humanoid = targetPlayer.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.Health = 0
+                end
+            end
+        end
+    end,
+})
+
+-- Refresh Character Button
+PlayerTab:CreateButton({
+    Name = "Refresh Character",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Refresh",
+            Content = "Refreshing your character...",
+            Duration = 2,
+        })
+        
+        local character = player.Character
+        if character then
+            character:BreakJoints()
+        end
+    end,
+})
+
+-- Info about Admin Commands
+PlayerTab:CreateParagraph({
+    Title = "🛠️ ADMIN COMMANDS",
+    Content = "Infinite Yield: Full admin command list\nFly: Free movement in air\nNoclip: Walk through walls\nGod Mode: Invincibility\nUse ;help for all commands after loading Infinite Yield"
+})
+
+-- Auto apply settings on respawn
+player.CharacterAdded:Connect(function(character)
+    wait(1)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    if WalkSpeedSlider then
+        humanoid.WalkSpeed = WalkSpeedSlider.CurrentValue
+    end
+    
+    if JumpPowerSlider then
+        humanoid.JumpPower = JumpPowerSlider.CurrentValue
+    end
+    
+    -- Re-apply fly if it was active
+    if Flying then
+        wait(2)
+        if Flying then
+            -- Re-create fly
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                BodyVelocity = Instance.new("BodyVelocity")
+                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                BodyVelocity.Parent = humanoidRootPart
+            end
+        end
+    end
+end)
+
+-- Aimbot Tab
+local AimbotTab = Window:CreateTab("Aimbot")
+
+-- Aimbot Configuration
+local AimPart = "HumanoidRootPart"
+local TeamCheck = false
+local Smoothness = 0.1
+local AimbotEnabled = false
+local UseCircle = false
+local CircleSize = 100
+local WallCheck = true
+local WhiteCircle = nil
+local CurrentTargetLabel = nil
+
+-- Create White Circle on Screen
+local function CreateWhiteCircle()
+    if WhiteCircle then 
+        WhiteCircle:Remove()
+        WhiteCircle = nil
+    end
+    
+    -- Create a ScreenGui for the circle
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "WhiteCircleGui"
+    screenGui.Parent = player.PlayerGui
+    
+    -- Create the white circle frame
+    WhiteCircle = Instance.new("Frame")
+    WhiteCircle.Name = "WhiteCircle"
+    WhiteCircle.Size = UDim2.new(0, CircleSize * 2, 0, CircleSize * 2)
+    WhiteCircle.Position = UDim2.new(0.5, -CircleSize, 0.5, -CircleSize) -- Center of screen
+    WhiteCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- WHITE color
+    WhiteCircle.BackgroundTransparency = 0.8 -- Slightly transparent
+    WhiteCircle.BorderSizePixel = 2
+    WhiteCircle.BorderColor3 = Color3.fromRGB(255, 255, 255)
+    WhiteCircle.Visible = UseCircle
+    WhiteCircle.ZIndex = 10
+    WhiteCircle.Parent = screenGui
+    
+    -- Make it a perfect circle
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0) -- Makes it completely round
+    corner.Parent = WhiteCircle
+    
+    return WhiteCircle
+end
+
+-- Update White Circle
+local function UpdateWhiteCircle()
+    if WhiteCircle then
+        WhiteCircle.Size = UDim2.new(0, CircleSize * 2, 0, CircleSize * 2)
+        WhiteCircle.Position = UDim2.new(0.5, -CircleSize, 0.5, -CircleSize)
+        WhiteCircle.Visible = UseCircle
+    end
+end
+
+-- Remove White Circle
+local function RemoveWhiteCircle()
+    if WhiteCircle then
+        -- Remove the entire ScreenGui
+        local screenGui = player.PlayerGui:FindFirstChild("WhiteCircleGui")
+        if screenGui then
+            screenGui:Destroy()
+        end
+        WhiteCircle = nil
+    end
+end
+
+-- Wall Check Function - Checks if target is visible (not behind walls)
+local function IsTargetVisible(targetPart)
+    if not WallCheck then return true end -- Skip wall check if disabled
+    if not targetPart then return false end
+    
+    local character = player.Character
+    if not character then return false end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return false end
+    
+    -- Cast a ray from camera to target
+    local origin = Camera.CFrame.Position
+    local targetPosition = targetPart.Position
+    local direction = (targetPosition - origin).Unit
+    local distance = (targetPosition - origin).Magnitude
+    
+    -- Create raycast parameters
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {character, targetPart.Parent}
+    raycastParams.IgnoreWater = true
+    
+    -- Perform raycast
+    local raycastResult = Workspace:Raycast(origin, direction * distance, raycastParams)
+    
+    -- If no hit, target is visible
+    return raycastResult == nil
+end
+
+-- Find closest player in circle function WITH WALL CHECK
+local function FindClosestPlayerInCircle()
+    local closestPlayer = nil
+    local closestDistance = math.huge
+    local closestPlayerName = nil
+    
+    for _, targetPlayer in pairs(Players:GetPlayers()) do
+        if targetPlayer ~= player and targetPlayer.Character then
+            local character = targetPlayer.Character
+            local humanoid = character:FindFirstChild("Humanoid")
+            local part = character:FindFirstChild(AimPart)
+            
+            if humanoid and humanoid.Health > 0 and part then
+                if TeamCheck and targetPlayer.Team and player.Team and targetPlayer.Team == player.Team then
+                    -- Skip teammates if team check is enabled
+                else
+                    -- Wall Check - Only target visible players
+                    local isVisible = IsTargetVisible(part)
+                    
+                    if isVisible then
+                        local vector, onScreen = Camera:WorldToViewportPoint(part.Position)
+                        if onScreen then
+                            local screenCenter = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                            local partPos = Vector2.new(vector.X, vector.Y)
+                            local distance = (screenCenter - partPos).Magnitude
+                            
+                            -- Only target players inside the white circle
+                            if UseCircle then
+                                if distance <= CircleSize and distance < closestDistance then
+                                    closestDistance = distance
+                                    closestPlayer = character
+                                    closestPlayerName = targetPlayer.Name
+                                end
+                            else
+                                -- If circle is disabled, target closest player
+                                if distance < closestDistance then
+                                    closestDistance = distance
+                                    closestPlayer = character
+                                    closestPlayerName = targetPlayer.Name
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    return closestPlayer, closestPlayerName
+end
+
+-- Aimbot Toggle
+local AimbotToggle = AimbotTab:CreateToggle({
+   Name = "Aimbot",
+   CurrentValue = false,
+   Flag = "AimbotEnabled",
+   Callback = function(Value)
+      AimbotEnabled = Value
+      if Value then
+          Rayfield:Notify({
+             Title = "Aimbot",
+             Content = "Aimbot ACTIVATED! Looking for VISIBLE targets...",
+             Duration = 3,
+          })
+      else
+          if CurrentTargetLabel then
+              CurrentTargetLabel:Set("Target: None")
+          end
+          Rayfield:Notify({
+             Title = "Aimbot",
+             Content = "Aimbot deactivated!",
+             Duration = 2,
+          })
+      end
+   end,
+})
+
+-- White Circle Toggle
+local CircleToggle = AimbotTab:CreateToggle({
+   Name = "White Circle",
+   CurrentValue = false,
+   Flag = "WhiteCircle",
+   Callback = function(Value)
+      UseCircle = Value
+      if Value then
+          CreateWhiteCircle()
+          Rayfield:Notify({
+             Title = "White Circle",
+             Content = "White circle ON - Only VISIBLE targets inside circle will be locked!",
+             Duration = 3,
+          })
+      else
+          RemoveWhiteCircle()
+          Rayfield:Notify({
+             Title = "White Circle",
+             Content = "White circle OFF",
+             Duration = 2,
+          })
+      end
+   end,
+})
+
+-- Wall Check Toggle
+local WallCheckToggle = AimbotTab:CreateToggle({
+   Name = "Wall Check",
+   CurrentValue = true,
+   Flag = "WallCheck",
+   Callback = function(Value)
+      WallCheck = Value
+      if Value then
+          Rayfield:Notify({
+             Title = "Wall Check",
+             Content = "Wall Check ON - Ignoring players behind walls!",
+             Duration = 2,
+          })
+      else
+          Rayfield:Notify({
+             Title = "Wall Check", 
+             Content = "Wall Check OFF - Targeting through walls!",
+             Duration = 2,
+          })
+      end
+   end,
+})
+
+-- Circle Size Slider
+local CircleSizeSlider = AimbotTab:CreateSlider({
+   Name = "Circle Size",
+   Range = {50, 500},
+   Increment = 10,
+   Suffix = "Pixels",
+   CurrentValue = 100,
+   Flag = "CircleSize",
+   Callback = function(Value)
+      CircleSize = Value
+      if WhiteCircle then
+          UpdateWhiteCircle()
+      end
+   end,
+})
+
+-- Aim Part Dropdown
+local AimPartDropdown = AimbotTab:CreateDropdown({
+   Name = "Aim Part",
+   Options = {"HumanoidRootPart", "Head", "UpperTorso"},
+   CurrentOption = {"HumanoidRootPart"},
+   MultipleOptions = false,
+   Flag = "AimPart",
+   Callback = function(Options)
+      AimPart = Options[1]
+   end,
+})
+
+-- Team Check Toggle
+local TeamCheckToggle = AimbotTab:CreateToggle({
+   Name = "Team Check",
+   CurrentValue = false,
+   Flag = "TeamCheck",
+   Callback = function(Value)
+      TeamCheck = Value
+   end,
+})
+
+-- Smoothness Slider
+local SmoothnessSlider = AimbotTab:CreateSlider({
+   Name = "Smoothness",
+   Range = {0.05, 1},
+   Increment = 0.05,
+   Suffix = "Smooth",
+   CurrentValue = 0.1,
+   Flag = "Smoothness",
+   Callback = function(Value)
+      Smoothness = Value
+   end,
+})
+
+-- Current Target Label
+CurrentTargetLabel = AimbotTab:CreateLabel("Target: None")
+
+-- Main Aimbot Loop
+RunService.RenderStepped:Connect(function()
+    -- Update white circle
+    if WhiteCircle then
+        UpdateWhiteCircle()
+    end
+    
+    -- Execute Aimbot when active
+    if AimbotEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local target, targetName = FindClosestPlayerInCircle()
+        if target then
+            local targetPart = target:FindFirstChild(AimPart)
+            if targetPart then
+                local currentCF = Camera.CFrame
+                local targetCF = CFrame.new(Camera.CFrame.Position, targetPart.Position)
+                Camera.CFrame = currentCF:Lerp(targetCF, Smoothness)
+                
+                if CurrentTargetLabel then
+                    CurrentTargetLabel:Set("🎯 Target: " .. targetName .. " (Visible)")
+                end
+            end
+        else
+            if CurrentTargetLabel then
+                CurrentTargetLabel:Set("Target: None (No visible targets)")
+            end
+        end
+    end
+end)
+
+-- Info
+AimbotTab:CreateParagraph({
+    Title = "🎯 AIMBOT",
+    Content = "🔫 Aimbot: Visual aiming assistance\n⚪ White Circle: Precise targeting area\n🧱 Wall Check: Ignore players behind walls\n\nSmooth aiming with intelligent target selection!"
+})
+
+-- NEW: Silent Aim Tab with Wall Check and Radius
+local SilentAimTab = Window:CreateTab("Silent Aim")
+
+-- Silent Aim Configuration with Wall Check and Radius
+local SilentAimEnabled = false
+local SilentAimWallCheck = true
+local SilentAimRadius = 130
+local SilentAimCircle = nil
+
+-- Create Silent Aim FOV Circle
+local function CreateSilentAimCircle()
+    if SilentAimCircle then 
+        SilentAimCircle:Remove()
+        SilentAimCircle = nil
+    end
+    
+    SilentAimCircle = Drawing.new("Circle")
+    SilentAimCircle.Visible = false
+    SilentAimCircle.Radius = SilentAimRadius
+    SilentAimCircle.Color = Color3.fromRGB(255, 255, 255)
+    SilentAimCircle.Thickness = 2
+    SilentAimCircle.Filled = false
+    SilentAimCircle.Transparency = 1
+    SilentAimCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+    
+    return SilentAimCircle
+end
+
+-- Wall Check for Silent Aim
+local function IsTargetVisibleSilentAim(targetPart)
+    if not SilentAimWallCheck then return true end
+    if not targetPart then return false end
+    
+    local character = player.Character
+    if not character then return false end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return false end
+    
+    local origin = Camera.CFrame.Position
+    local targetPosition = targetPart.Position
+    local direction = (targetPosition - origin).Unit
+    local distance = (targetPosition - origin).Magnitude
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {character, targetPart.Parent}
+    raycastParams.IgnoreWater = true
+    
+    local raycastResult = Workspace:Raycast(origin, direction * distance, raycastParams)
+    
+    return raycastResult == nil
+end
+
+-- Load khen Silent Aim with custom Wall Check and Radius
+SilentAimTab:CreateButton({
+    Name = "Load Silent Aim",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Silent Aim",
+            Content = "Loading khen Silent Aim with Wall Check...",
+            Duration = 3,
+        })
+        
+        -- Erweiterte khen Konfiguration mit Wall Check und Radius
+        local khenScript = [[
+            getgenv().khen = {
+                ['Silent'] = {
+                    Normal = {
+                        Enabled = true,
+                        HitPart = "HumanoidRootPart",
+                        Prediction = 0.1657724,
+                        AirPrediction = 0.149,
+                    },
+                    FOV = {
+                        FOVSize = ]] .. SilentAimRadius .. [[,
+                        ShowFOV = true,
+                    },
+                    Resolver = {
+                        Enabled = true,
+                    },
+                    WallCheck = ]] .. tostring(SilentAimWallCheck) .. [[,
+                },
+            }
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/khenn791/script-khen/refs/heads/main/SilentAim", true))()
+        ]]
+        
+        -- Führe das khen Script aus
+        loadstring(khenScript)()
+        
+        -- Aktiviere unseren FOV Kreis
+        if SilentAimCircle then
+            SilentAimCircle.Visible = true
+        end
+        
+        SilentAimEnabled = true
+        
+        Rayfield:Notify({
+            Title = "Silent Aim",
+            Content = "khen Silent Aim loaded with Wall Check! 🎯\nRadius: " .. SilentAimRadius .. " | Wall Check: " .. tostring(SilentAimWallCheck),
+            Duration = 5,
+        })
+    end,
+})
+
+-- Silent Aim Wall Check Toggle
+SilentAimTab:CreateToggle({
+    Name = "Wall Check",
+    CurrentValue = true,
+    Flag = "SilentAimWallCheck",
+    Callback = function(Value)
+        SilentAimWallCheck = Value
+        if Value then
+            Rayfield:Notify({
+                Title = "Silent Aim",
+                Content = "Wall Check ON - Ignoring players behind walls",
+                Duration = 2,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Silent Aim",
+                Content = "Wall Check OFF - Targeting through walls",
+                Duration = 2,
+            })
+        end
+    end,
+})
+
+-- Silent Aim Radius Slider
+SilentAimTab:CreateSlider({
+    Name = "FOV Radius",
+    Range = {50, 300},
+    Increment = 10,
+    Suffix = "Pixels",
+    CurrentValue = 130,
+    Flag = "SilentAimRadius",
+    Callback = function(Value)
+        SilentAimRadius = Value
+        if SilentAimCircle then
+            SilentAimCircle.Radius = Value
+        end
+    end,
+})
+
+-- Show FOV Circle Toggle
+SilentAimTab:CreateToggle({
+    Name = "Show FOV Circle",
+    CurrentValue = false,
+    Flag = "ShowSilentAimFOV",
+    Callback = function(Value)
+        if SilentAimCircle then
+            SilentAimCircle.Visible = Value
+        else
+            CreateSilentAimCircle()
+            SilentAimCircle.Visible = Value
+        end
+    end,
+})
+
+-- Create Silent Aim FOV Circle at start
+CreateSilentAimCircle()
+
+-- Update FOV Circle position
+RunService.RenderStepped:Connect(function()
+    if SilentAimCircle then
+        SilentAimCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+        SilentAimCircle.Radius = SilentAimRadius
+    end
+end)
+
+-- Info about Silent Aim
+SilentAimTab:CreateParagraph({
+    Title = "🔫 SILENT AIM WITH WALL CHECK",
+    Content = "Features:\n• Advanced Silent Aim\n• Wall Check - ignores players behind walls\n• Custom FOV Radius\n• Normal & Air Prediction\n• Resolver System\n\nClick 'Load Silent Aim' to activate!"
+})
+
+-- Script finished
+Rayfield:Notify({
+   Title = "LAZER HUB",
+   Content = "LAZER HUB with Advanced Silent Aim loaded! 🛠️🎯🔫",
+   Duration = 3,
+})
