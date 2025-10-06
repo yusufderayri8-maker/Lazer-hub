@@ -1,0 +1,51 @@
+-- 99 Nights in the Forest - Ultra Simple Teleport to Kids
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "99 Nights - Teleport to Kids",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "Simple Teleport to Kids",
+    ConfigurationSaving = { Enabled = false }
+})
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Simple Teleport Function
+local function teleportToKid(kidName)
+    local chars = workspace:WaitForChild("Characters")
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        for _, model in pairs(chars:GetChildren()) do
+            if model.Name == kidName then
+                local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+                if part then
+                    char.HumanoidRootPart.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+                    print("Teleported to: " .. kidName)
+                    return
+                end
+            end
+        end
+        print("No " .. kidName .. " found!")
+    end
+end
+
+-- Create Simple Tab
+local SimpleTab = Window:CreateTab("Teleport to Kids", nil)
+
+-- Simple Buttons
+SimpleTab:CreateButton({
+    Name = "TP to Lost Child",
+    Callback = function()
+        teleportToKid("Lost Child")
+    end
+})
+
+SimpleTab:CreateButton({
+    Name = "TP to Lost Child2",
+    Callback = function()
+        teleportToKid("Lost Child2")
+    end
+})
+
+Si
