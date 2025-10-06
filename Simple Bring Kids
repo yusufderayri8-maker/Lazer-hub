@@ -1,0 +1,50 @@
+-- Simple Bring Kids GUI
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- GUI erstellen
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BringKidsGUI"
+ScreenGui.Parent = player.PlayerGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 200, 0, 200)
+MainFrame.Position = UDim2.new(0, 10, 0, 10)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Title.BorderSizePixel = 0
+Title.Text = "BRING KIDS"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = Title
+
+local Content = Instance.new("Frame")
+Content.Name = "Content"
+Content.Size = UDim2.new(1, -10, 1, -40)
+Content.Position = UDim2.new(0, 5, 0, 35)
+Content.BackgroundTransparency = 1
+Content.Parent = MainFrame
+
+local ButtonLayout = Instance.new("UIListLayout")
+ButtonLayout.Padding = UDim.new(0, 5)
+ButtonLayout.Parent = Content
+
+-- Teleport-Funktion
+local function bringKids(kidName)
+    local characterFolder = workspace:WaitForChild("Character
